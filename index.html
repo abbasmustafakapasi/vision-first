@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vision First — Calibration</title>
+<style>
+  :root{
+    --ink:#15201c;
+    --paper:#ffffff;
+    --slate:#38494a;
+    --mist:#e8eceb;
+    --duo-red:#c0392b;
+    --duo-green:#1e7a5a;
+    --rule:#c9d3d1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:clamp(20px,4vw,48px)}
+
+  header{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:28px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+  h1{font-size:clamp(20px,3vw,26px);font-weight:650;letter-spacing:-.01em}
+  .stage{font-size:13px;color:var(--slate);font-variant-numeric:tabular-nums}
+
+  .step{margin-bottom:34px}
+  .step h2{font-size:clamp(17px,2.4vw,20px);font-weight:600;margin-bottom:6px}
+  .step p{color:var(--slate);max-width:62ch;margin-bottom:16px;font-size:15px}
+
+  /* The calibration bar — the one loud element on the page */
+  .barfield{background:var(--mist);border:1px solid var(--rule);padding:26px 20px;overflow-x:auto}
+  .bar{height:34px;background:var(--ink);position:relative}
+  .bar::before,.bar::after{content:"";position:absolute;top:-10px;bottom:-10px;width:2px;background:var(--duo-red)}
+  .bar::before{left:0}
+  .bar::after{right:0}
+  .barlabel{margin-top:12px;font-size:13px;color:var(--slate);font-variant-numeric:tabular-nums}
+
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-top:20px}
+  label{display:block;font-size:14px;font-weight:550;margin-bottom:6px}
+  input[type=number]{
+    font:inherit;font-size:17px;padding:11px 13px;width:150px;
+    border:1.5px solid var(--rule);background:var(--paper);color:var(--ink);
+    font-variant-numeric:tabular-nums}
+  input[type=number]:focus{outline:2px solid var(--duo-green);outline-offset:1px;border-color:var(--duo-green)}
+  button{
+    font:inherit;font-size:15px;font-weight:550;padding:12px 22px;cursor:pointer;
+    background:var(--ink);color:var(--paper);border:1.5px solid var(--ink)}
+  button:hover{background:var(--slate);border-color:var(--slate)}
+  button:focus-visible{outline:2px solid var(--duo-green);outline-offset:2px}
+  button.ghost{background:transparent;color:var(--ink)}
+  button.ghost:hover{background:var(--mist)}
+
+  .result{margin-top:22px;padding:18px 20px;border-left:4px solid var(--duo-green);background:var(--mist)}
+  .result.warn{border-left-color:var(--duo-red)}
+  .result h3{font-size:15px;font-weight:600;margin-bottom:8px}
+  .result p{margin:0;font-size:14px;color:var(--slate)}
+  .figure{font-size:26px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--ink);margin:4px 0 8px}
+
+  .hidden{display:none}
+
+  /* Verification screen */
+  .verify{border:1px solid var(--rule);padding:30px 20px;text-align:center;background:var(--paper)}
+  .verify svg{display:block;margin:0 auto}
+  .caption{margin-top:16px;font-size:13px;color:var(--slate);font-variant-numeric:tabular-nums}
+
+  table{border-collapse:collapse;width:100%;margin-top:14px;font-size:14px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
+  th{font-weight:600;font-size:13px;color:var(--slate)}
+
+  footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--rule);font-size:13px;color:var(--slate)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Vision First — screen calibration</h1>
+    <span class="stage">v0.1 · calibration engine</span>
+  </header>
+
+  <!-- STEP 1 -->
+  <section class="step" id="step1">
+    <h2>Measure the bar below</h2>
+    <p>This bar is drawn at what the browser believes is 100&nbsp;mm. Screens rarely agree with that, so hold a ruler flat against the panel and measure between the two red end marks. Enter what it actually measures.</p>
+
+    <div class="barfield">
+      <div class="bar" id="calbar" style="width:100mm"></div>
+      <div class="barlabel">Declared width: 100 mm</div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="measured">Measured width (mm)</label>
+        <input type="number" id="measured" min="10" max="400" step="0.5" placeholder="e.g. 82.5">
+      </div>
+      <button id="apply">Apply calibration</button>
+      <button class="ghost" id="reset">Reset</button>
+    </div>
+
+    <div class="result hidden" id="out">
+      <h3 id="outTitle">Calibration applied</h3>
+      <div class="figure" id="outFigure"></div>
+      <p id="outNote"></p>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step hidden" id="step2">
+    <h2>Verify against a known letter</h2>
+    <p>This is the 6/60 optotype — the largest line on the chart, drawn on the standard five-by-five grid. At six metres it must measure 87.3&nbsp;mm tall. Measure it. If it is within about a millimetre, the calibration holds and the chart can be trusted.</p>
+
+    <div class="verify">
+      <svg id="bigE" viewBox="0 0 5 5" role="img" aria-label="Tumbling E optotype, arms pointing right">
+        <rect x="0" y="0" width="1" height="5" fill="#15201c"></rect>
+        <rect x="0" y="0" width="5" height="1" fill="#15201c"></rect>
+        <rect x="0" y="2" width="5" height="1" fill="#15201c"></rect>
+        <rect x="0" y="4" width="5" height="1" fill="#15201c"></rect>
+      </svg>
+      <div class="caption" id="eCaption"></div>
+    </div>
+
+    <h2 style="margin-top:32px">Chart sizes at this calibration</h2>
+    <p>Physical height each line will be drawn at, using your measurement. Spot-check any one of them with a ruler.</p>
+    <table>
+      <thead><tr><th>Line</th><th>Target height</th><th>Declared in CSS</th></tr></thead>
+      <tbody id="sizeTable"></tbody>
+    </table>
+  </section>
+
+  <footer>
+    Calibration is held for this session only. Recalibrate when you move to a different panel.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Snellen geometry: letter height = distance(mm) x tan(5') x (denominator / 6)
+  var ARCMIN5 = 0.001454;
+  var DISTANCE_MM = 6000;
+  var LINES = [60, 36, 24, 18, 12, 9, 6];
+
+  var scale = null;
+
+  var measured  = document.getElementById('measured');
+  var applyBtn  = document.getElementById('apply');
+  var resetBtn  = document.getElementById('reset');
+  var out       = document.getElementById('out');
+  var outTitle  = document.getElementById('outTitle');
+  var outFigure = document.getElementById('outFigure');
+  var outNote   = document.getElementById('outNote');
+  var step2     = document.getElementById('step2');
+  var bigE      = document.getElementById('bigE');
+  var eCaption  = document.getElementById('eCaption');
+  var sizeTable = document.getElementById('sizeTable');
+
+  function heightFor(denominator){
+    return DISTANCE_MM * ARCMIN5 * (denominator / 6);
+  }
+
+  function applyCalibration(){
+    var v = parseFloat(measured.value);
+
+    if (!v || v <= 0) {
+      out.classList.remove('hidden');
+      out.classList.add('warn');
+      outTitle.textContent = 'Enter a measurement first';
+      outFigure.textContent = '';
+      outNote.textContent = 'Measure the bar between the red marks and type the value in millimetres.';
+      step2.classList.add('hidden');
+      return;
+    }
+
+    scale = 100 / v;
+
+    out.classList.remove('hidden','warn');
+    outTitle.textContent = 'Calibration applied';
+    outFigure.textContent = 'scale factor ' + scale.toFixed(4);
+    outNote.textContent = 'The bar rendered at ' + v + ' mm instead of 100 mm, so every size is now multiplied by '
+      + scale.toFixed(4) + ' before being drawn.';
+
+    var target = heightFor(60);
+    var declared = target * scale;
+    bigE.style.height = declared + 'mm';
+    bigE.style.width  = declared + 'mm';
+    eCaption.textContent = 'Target height 87.3 mm · declared to browser as ' + declared.toFixed(1) + ' mm';
+
+    sizeTable.innerHTML = '';
+    LINES.forEach(function(d){
+      var t = heightFor(d);
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>6/' + d + '</td><td>' + t.toFixed(1) + ' mm</td><td>'
+                   + (t * scale).toFixed(1) + ' mm</td>';
+      sizeTable.appendChild(tr);
+    });
+
+    step2.classList.remove('hidden');
+    step2.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function reset(){
+    scale = null;
+    measured.value = '';
+    out.classList.add('hidden');
+    step2.classList.add('hidden');
+    measured.focus();
+  }
+
+  applyBtn.addEventListener('click', applyCalibration);
+  resetBtn.addEventListener('click', reset);
+  measured.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') applyCalibration();
+  });
+})();
+</script>
+</body>
+</html>

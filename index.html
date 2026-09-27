@@ -82,7 +82,7 @@
 
   <header>
     <h1>Vision First — screen calibration</h1>
-    <span class="stage">v0.1.1 · calibration engine · Landolt C</span>
+    <span class="stage">v0.2 · calibration + 3-line screening chart</span>
   </header>
 
   <!-- STEP 1 -->
@@ -137,6 +137,35 @@
     </table>
   </section>
 
+  <!-- STEP 3 -->
+  <section class="step hidden" id="step3">
+    <h2>Run the screening chart</h2>
+    <p>Pick the sequence written on the child's code slip, hold up the correct colour occluder, then show each line in order. The child circles the matching arrow on their paper answer sheet — this screen never shows the answer, only the ring.</p>
+
+    <div class="row" style="align-items:center">
+      <div>
+        <label for="seqSelect">Sequence</label>
+        <select id="seqSelect" style="font:inherit;font-size:15px;padding:10px 12px;border:1.5px solid var(--rule)">
+          <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+          <option value="D">D</option><option value="E">E</option>
+        </select>
+      </div>
+      <button class="ghost" id="eyeToggle" type="button">Now testing: LEFT EYE</button>
+    </div>
+
+    <div class="row">
+      <button data-line="0">Line 1 · 6/18</button>
+      <button data-line="1">Line 2 · 6/9</button>
+      <button data-line="2">Line 3 · 6/6</button>
+      <button class="ghost" id="clearChart" type="button">Clear</button>
+    </div>
+
+    <div class="verify" id="chartField" style="margin-top:20px">
+      <div class="caption" id="lineCaption">Choose a line above to display it.</div>
+      <div id="ringRow" style="display:flex;justify-content:center;align-items:center;gap:6vw;flex-wrap:wrap;min-height:120px;margin-top:14px"></div>
+    </div>
+  </section>
+
   <footer>
     Calibration is held for this session only. Recalibrate when you move to a different panel.
   </footer>
@@ -150,6 +179,32 @@
   var ARCMIN5 = Math.tan((5 / 60) * Math.PI / 180); // tan(5 arc-minutes), exact
   var DISTANCE_MM = 6000;
   var LINES = [60, 36, 24, 18, 12, 9, 6];
+
+  // Screening chart: 3 lines only (safety line, checkpoint, pass line), 4 rings each.
+  var CHART_LINES = [18, 9, 6];
+  var ROT = {right:0, down:90, left:180, up:270};
+  var SEQUENCES = {
+    A: ['right','up','left','down',  'down','left','up','right',  'up','down','right','left'],
+    B: ['left','down','right','up',  'right','up','down','left',  'down','right','left','up'],
+    C: ['down','right','up','left',  'up','left','right','down',  'right','down','up','left'],
+    D: ['up','left','down','right',  'left','right','up','down',  'down','up','left','right'],
+    E: ['right','down','left','up',  'down','up','right','left',  'left','right','down','up']
+  };
+  var ringIdCounter = 0;
+
+  function ringSVG(direction, sizeMm){
+    ringIdCounter++;
+    var id = 'gap' + ringIdCounter;
+    var deg = ROT[direction];
+    return '<svg viewBox="0 0 5 5" width="' + sizeMm.toFixed(1) + 'mm" height="' + sizeMm.toFixed(1) + 'mm" ' +
+      'style="transform:rotate(' + deg + 'deg)" role="img" aria-hidden="true">' +
+      '<defs><mask id="' + id + '" maskUnits="userSpaceOnUse" x="0" y="0" width="5" height="5">' +
+      '<rect x="0" y="0" width="5" height="5" fill="white"></rect>' +
+      '<rect x="2.5" y="2" width="2.5" height="1" fill="black"></rect>' +
+      '</mask></defs>' +
+      '<circle cx="2.5" cy="2.5" r="2" fill="none" stroke="#15201c" stroke-width="1" mask="url(#' + id + ')"></circle>' +
+      '</svg>';
+  }
 
   var scale = null;
 
@@ -206,6 +261,7 @@
     });
 
     step2.classList.remove('hidden');
+    step3.classList.remove('hidden');
     step2.scrollIntoView({behavior:'smooth', block:'start'});
   }
 
@@ -214,6 +270,8 @@
     measured.value = '';
     out.classList.add('hidden');
     step2.classList.add('hidden');
+    step3.classList.add('hidden');
+    clearChart();
     measured.focus();
   }
 
@@ -221,6 +279,39 @@
   resetBtn.addEventListener('click', reset);
   measured.addEventListener('keydown', function(e){
     if (e.key === 'Enter') applyCalibration();
+  });
+
+  // ---- Screening chart (step 3) ----
+  var step3       = document.getElementById('step3');
+  var seqSelect    = document.getElementById('seqSelect');
+  var eyeToggle    = document.getElementById('eyeToggle');
+  var lineCaption  = document.getElementById('lineCaption');
+  var ringRow      = document.getElementById('ringRow');
+  var leftEye      = true;
+
+  function clearChart(){
+    ringRow.innerHTML = '';
+    lineCaption.textContent = 'Choose a line above to display it.';
+  }
+
+  function showLine(lineIndex){
+    if (!scale) { alert('Calibrate the screen first (Step 1).'); return; }
+    var denom = CHART_LINES[lineIndex];
+    var seq = SEQUENCES[seqSelect.value];
+    var dirs = seq.slice(lineIndex * 4, lineIndex * 4 + 4);
+    var targetMm = heightFor(denom) * scale;
+
+    lineCaption.textContent = 'Sequence ' + seqSelect.value + ' · Line ' + (lineIndex + 1) + ' · 6/' + denom;
+    ringRow.innerHTML = dirs.map(function(d){ return ringSVG(d, targetMm); }).join('');
+  }
+
+  document.querySelectorAll('[data-line]').forEach(function(btn){
+    btn.addEventListener('click', function(){ showLine(parseInt(btn.getAttribute('data-line'), 10)); });
+  });
+  document.getElementById('clearChart').addEventListener('click', clearChart);
+  eyeToggle.addEventListener('click', function(){
+    leftEye = !leftEye;
+    eyeToggle.textContent = 'Now testing: ' + (leftEye ? 'LEFT EYE' : 'RIGHT EYE');
   });
 })();
 </script>

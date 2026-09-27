@@ -82,7 +82,7 @@
 
   <header>
     <h1>Vision First — screen calibration</h1>
-    <span class="stage">v0.2 · calibration + 3-line screening chart</span>
+    <span class="stage">v0.2.1 · calibration + 3-line screening chart</span>
   </header>
 
   <!-- STEP 1 -->
@@ -150,17 +150,19 @@
           <option value="D">D</option><option value="E">E</option>
         </select>
       </div>
-      <button class="ghost" id="eyeToggle" type="button">Now testing: LEFT EYE</button>
+      <button class="ghost" id="eyeToggle" type="button">Testing: LEFT EYE — cover the right eye</button>
     </div>
 
     <div class="row">
-      <button data-line="0">Line 1 · 6/18</button>
-      <button data-line="1">Line 2 · 6/9</button>
-      <button data-line="2">Line 3 · 6/6</button>
+      <button id="practiceBtn" type="button">&#9733; Practice</button>
+      <button data-line="0">&#9679; Line 1 · 6/18</button>
+      <button data-line="1">&#9650; Line 2 · 6/9</button>
+      <button data-line="2">&#9632; Line 3 · 6/6</button>
       <button class="ghost" id="clearChart" type="button">Clear</button>
     </div>
 
     <div class="verify" id="chartField" style="margin-top:20px">
+      <div id="rowShape" style="font-size:64px;line-height:1;color:var(--ink)"></div>
       <div class="caption" id="lineCaption">Choose a line above to display it.</div>
       <div id="ringRow" style="display:flex;justify-content:center;align-items:center;gap:6vw;flex-wrap:wrap;min-height:120px;margin-top:14px"></div>
     </div>
@@ -183,13 +185,20 @@
   // Screening chart: 3 lines only (safety line, checkpoint, pass line), 4 rings each.
   var CHART_LINES = [18, 9, 6];
   var ROT = {right:0, down:90, left:180, up:270};
+  // Each sequence has a different order for each eye, so a child can't remember the left-eye answers for the right eye.
   var SEQUENCES = {
-    A: ['right','up','left','down',  'down','left','up','right',  'up','down','right','left'],
-    B: ['left','down','right','up',  'right','up','down','left',  'down','right','left','up'],
-    C: ['down','right','up','left',  'up','left','right','down',  'right','down','up','left'],
-    D: ['up','left','down','right',  'left','right','up','down',  'down','up','left','right'],
-    E: ['right','down','left','up',  'down','up','right','left',  'left','right','down','up']
+    A: { L: ['right','up','left','down',  'down','left','up','right',  'up','down','right','left'],
+         R: ['up','left','down','right',  'right','down','left','up',  'left','up','down','right'] },
+    B: { L: ['left','down','right','up',  'right','up','down','left',  'down','right','left','up'],
+         R: ['down','up','left','right',  'left','right','down','up',  'up','left','right','down'] },
+    C: { L: ['down','right','up','left',  'up','left','right','down',  'right','down','up','left'],
+         R: ['left','up','right','down',  'right','down','left','up',  'down','right','up','left'] },
+    D: { L: ['up','left','down','right',  'left','right','up','down',  'down','up','left','right'],
+         R: ['right','down','up','left',  'up','left','down','right',  'left','down','right','up'] },
+    E: { L: ['right','down','left','up',  'down','up','right','left',  'left','right','down','up'],
+         R: ['up','right','down','left',  'left','down','up','right',  'right','up','left','down'] }
   };
+  var SHAPES = ['●', '▲', '■']; // ● ▲ ■ — same row markers as the paper answer sheet
   var ringIdCounter = 0;
 
   function ringSVG(direction, sizeMm){
@@ -289,29 +298,45 @@
   var ringRow      = document.getElementById('ringRow');
   var leftEye      = true;
 
+  var rowShape = document.getElementById('rowShape');
+
+  function eyeName(){ return leftEye ? 'LEFT EYE' : 'RIGHT EYE'; }
+
   function clearChart(){
     ringRow.innerHTML = '';
+    rowShape.textContent = '';
     lineCaption.textContent = 'Choose a line above to display it.';
+  }
+
+  function showPractice(){
+    if (!scale) { alert('Calibrate the screen first (Step 1).'); return; }
+    rowShape.textContent = '★';
+    lineCaption.textContent = 'Practice ring (not scored)';
+    ringRow.innerHTML = ringSVG('right', heightFor(60) * scale);
   }
 
   function showLine(lineIndex){
     if (!scale) { alert('Calibrate the screen first (Step 1).'); return; }
     var denom = CHART_LINES[lineIndex];
-    var seq = SEQUENCES[seqSelect.value];
+    var seq = SEQUENCES[seqSelect.value][leftEye ? 'L' : 'R'];
     var dirs = seq.slice(lineIndex * 4, lineIndex * 4 + 4);
     var targetMm = heightFor(denom) * scale;
 
-    lineCaption.textContent = 'Sequence ' + seqSelect.value + ' · Line ' + (lineIndex + 1) + ' · 6/' + denom;
+    rowShape.textContent = SHAPES[lineIndex];
+    lineCaption.textContent = eyeName() + ' · Sequence ' + seqSelect.value + ' · Line ' + (lineIndex + 1) + ' · 6/' + denom;
     ringRow.innerHTML = dirs.map(function(d){ return ringSVG(d, targetMm); }).join('');
   }
 
   document.querySelectorAll('[data-line]').forEach(function(btn){
     btn.addEventListener('click', function(){ showLine(parseInt(btn.getAttribute('data-line'), 10)); });
   });
+  document.getElementById('practiceBtn').addEventListener('click', showPractice);
   document.getElementById('clearChart').addEventListener('click', clearChart);
+  seqSelect.addEventListener('change', clearChart);
   eyeToggle.addEventListener('click', function(){
     leftEye = !leftEye;
-    eyeToggle.textContent = 'Now testing: ' + (leftEye ? 'LEFT EYE' : 'RIGHT EYE');
+    eyeToggle.textContent = 'Testing: ' + eyeName() + ' — cover the ' + (leftEye ? 'right' : 'left') + ' eye';
+    clearChart();
   });
 })();
 </script>

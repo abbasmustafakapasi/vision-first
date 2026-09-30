@@ -82,7 +82,7 @@
 
   <header>
     <h1>Vision First — screen calibration</h1>
-    <span class="stage">v0.2.1 · calibration + 3-line screening chart</span>
+    <span class="stage">v0.2.2 · right eye first · 3-line screening chart</span>
   </header>
 
   <!-- STEP 1 -->
@@ -150,7 +150,7 @@
           <option value="D">D</option><option value="E">E</option>
         </select>
       </div>
-      <button class="ghost" id="eyeToggle" type="button">Testing: LEFT EYE — cover the right eye</button>
+      <button id="eyeToggle" type="button" style="background:#d40000;border-color:#d40000;color:#fff">Testing: RIGHT EYE — hold the RED card over the LEFT eye</button>
     </div>
 
     <div class="row">
@@ -296,7 +296,7 @@
   var eyeToggle    = document.getElementById('eyeToggle');
   var lineCaption  = document.getElementById('lineCaption');
   var ringRow      = document.getElementById('ringRow');
-  var leftEye      = true;
+  var leftEye      = false; // right eye is tested first (standard clinical order, matches the answer sheet)
 
   var rowShape = document.getElementById('rowShape');
 
@@ -306,6 +306,7 @@
     ringRow.innerHTML = '';
     rowShape.textContent = '';
     lineCaption.textContent = 'Choose a line above to display it.';
+    lineCaption.style.color = '';
   }
 
   function showPractice(){
@@ -324,6 +325,7 @@
 
     rowShape.textContent = SHAPES[lineIndex];
     lineCaption.textContent = eyeName() + ' · Sequence ' + seqSelect.value + ' · Line ' + (lineIndex + 1) + ' · 6/' + denom;
+    lineCaption.style.color = leftEye ? '#0033dd' : '#d40000';
     ringRow.innerHTML = dirs.map(function(d){ return ringSVG(d, targetMm); }).join('');
   }
 
@@ -335,7 +337,10 @@
   seqSelect.addEventListener('change', clearChart);
   eyeToggle.addEventListener('click', function(){
     leftEye = !leftEye;
-    eyeToggle.textContent = 'Testing: ' + eyeName() + ' — cover the ' + (leftEye ? 'right' : 'left') + ' eye';
+    eyeToggle.textContent = leftEye ? 'Testing: LEFT EYE — hold the BLUE card over the RIGHT eye'
+                                    : 'Testing: RIGHT EYE — hold the RED card over the LEFT eye';
+    var col = leftEye ? '#0033dd' : '#d40000';
+    eyeToggle.style.background = col; eyeToggle.style.borderColor = col;
     clearChart();
   });
 })();

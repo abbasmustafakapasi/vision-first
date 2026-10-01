@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vision First — Calibration</title>
+<title>Vision First — Screening chart</title>
 <style>
   :root{
     --ink:#15201c;
@@ -82,7 +82,7 @@
 
   <header>
     <h1>Vision First — screen calibration</h1>
-    <span class="stage">v0.2.2 · right eye first · 3-line screening chart</span>
+    <span class="stage">v0.3 · right eye first · 6-line screening chart (6/36 to 6/6)</span>
   </header>
 
   <!-- STEP 1 -->
@@ -114,7 +114,7 @@
   <!-- STEP 2 -->
   <section class="step hidden" id="step2">
     <h2>Verify against a known ring</h2>
-    <p>This is the 6/60 Landolt C — the largest line on the chart. Its outer diameter is five units, the ring is one unit thick and the gap is one unit wide. At six metres the outer diameter must measure 87.3&nbsp;mm, top to bottom. Measure it. If it is within about a millimetre, the calibration holds and the chart can be trusted.</p>
+    <p>This is the 6/60 Landolt C — the biggest ring we ever draw. It is only used for the practice ring, to check the calibration. The screening chart itself starts at 6/36. Its outer diameter is five units, the ring is one unit thick and the gap is one unit wide. At six metres the outer diameter must measure 87.3&nbsp;mm, top to bottom. Measure it. If it is within about a millimetre, the calibration holds and the chart can be trusted.</p>
 
     <div class="verify">
       <svg id="bigE" viewBox="0 0 5 5" role="img" aria-label="Landolt C optotype, gap facing right">
@@ -130,9 +130,9 @@
     </div>
 
     <h2 style="margin-top:32px">Chart sizes at this calibration</h2>
-    <p>Physical height each line will be drawn at, using your measurement. Spot-check any one of them with a ruler.</p>
+    <p>Physical height each line will be drawn at, using your measurement. Lines marked “screening” are the six lines used on the chart. Spot-check any one of them with a ruler.</p>
     <table>
-      <thead><tr><th>Line</th><th>Target height</th><th>Declared in CSS</th></tr></thead>
+      <thead><tr><th>Line</th><th>Use</th><th>Target height</th><th>Declared in CSS</th></tr></thead>
       <tbody id="sizeTable"></tbody>
     </table>
   </section>
@@ -140,7 +140,7 @@
   <!-- STEP 3 -->
   <section class="step hidden" id="step3">
     <h2>Run the screening chart</h2>
-    <p>Pick the sequence written on the child's code slip, hold up the correct colour occluder, then show each line in order. The child circles the matching arrow on their paper answer sheet — this screen never shows the answer, only the ring.</p>
+    <p>Pick the sequence written on the child's code slip, hold up the correct colour occluder, then show each line in order, starting with the biggest rings (Line 1, 6/36) and moving down to the smallest (Line 6, 6/6). Stop as soon as the child cannot read a line (fewer than 3 of 4 correct). The child circles the matching arrow on their paper answer sheet — this screen never shows the answer, only the ring.</p>
 
     <div class="row" style="align-items:center">
       <div>
@@ -154,10 +154,13 @@
     </div>
 
     <div class="row">
-      <button id="practiceBtn" type="button">&#9733; Practice</button>
-      <button data-line="0">&#9679; Line 1 · 6/18</button>
-      <button data-line="1">&#9650; Line 2 · 6/9</button>
-      <button data-line="2">&#9632; Line 3 · 6/6</button>
+      <button id="practiceBtn" type="button">Practice (big ring)</button>
+      <button data-line="0">&#9679; Line 1 · 6/36</button>
+      <button data-line="1">&#9650; Line 2 · 6/24</button>
+      <button data-line="2">&#9632; Line 3 · 6/18</button>
+      <button data-line="3">&#9670; Line 4 · 6/12</button>
+      <button data-line="4">&#9829; Line 5 · 6/9</button>
+      <button data-line="5">&#9824; Line 6 · 6/6</button>
       <button class="ghost" id="clearChart" type="button">Clear</button>
     </div>
 
@@ -182,23 +185,23 @@
   var DISTANCE_MM = 6000;
   var LINES = [60, 36, 24, 18, 12, 9, 6];
 
-  // Screening chart: 3 lines only (safety line, checkpoint, pass line), 4 rings each.
-  var CHART_LINES = [18, 9, 6];
+  // Screening chart: 6 lines (6/36 down to 6/6), 4 rings each. Weak students start at 6/36; the pass line is set on the Settings tab of VF_DATA.
+  var CHART_LINES = [36, 24, 18, 12, 9, 6];
   var ROT = {right:0, down:90, left:180, up:270};
   // Each sequence has a different order for each eye, so a child can't remember the left-eye answers for the right eye.
   var SEQUENCES = {
-    A: { L: ['right','up','left','down',  'down','left','up','right',  'up','down','right','left'],
-         R: ['up','left','down','right',  'right','down','left','up',  'left','up','down','right'] },
-    B: { L: ['left','down','right','up',  'right','up','down','left',  'down','right','left','up'],
-         R: ['down','up','left','right',  'left','right','down','up',  'up','left','right','down'] },
-    C: { L: ['down','right','up','left',  'up','left','right','down',  'right','down','up','left'],
-         R: ['left','up','right','down',  'right','down','left','up',  'down','right','up','left'] },
-    D: { L: ['up','left','down','right',  'left','right','up','down',  'down','up','left','right'],
-         R: ['right','down','up','left',  'up','left','down','right',  'left','down','right','up'] },
-    E: { L: ['right','down','left','up',  'down','up','right','left',  'left','right','down','up'],
-         R: ['up','right','down','left',  'left','down','up','right',  'right','up','left','down'] }
+    A: { L: ['right', 'up', 'down', 'left', 'left', 'right', 'up', 'down', 'left', 'up', 'right', 'down', 'up', 'left', 'right', 'down', 'right', 'left', 'down', 'up', 'left', 'down', 'up', 'right'],
+         R: ['down', 'left', 'right', 'up', 'up', 'left', 'down', 'right', 'left', 'down', 'up', 'right', 'down', 'right', 'up', 'left', 'left', 'right', 'up', 'down', 'up', 'left', 'right', 'down'] },
+    B: { L: ['up', 'left', 'right', 'down', 'down', 'right', 'up', 'left', 'down', 'up', 'right', 'left', 'up', 'left', 'down', 'right', 'down', 'up', 'left', 'right', 'down', 'right', 'left', 'up'],
+         R: ['down', 'up', 'right', 'left', 'right', 'down', 'up', 'left', 'up', 'right', 'left', 'down', 'left', 'up', 'right', 'down', 'down', 'right', 'left', 'up', 'right', 'up', 'down', 'left'] },
+    C: { L: ['left', 'right', 'up', 'down', 'down', 'left', 'up', 'right', 'down', 'up', 'right', 'left', 'down', 'up', 'left', 'right', 'down', 'left', 'right', 'up', 'down', 'right', 'left', 'up'],
+         R: ['right', 'left', 'down', 'up', 'left', 'down', 'up', 'right', 'up', 'right', 'left', 'down', 'down', 'left', 'up', 'right', 'right', 'up', 'down', 'left', 'down', 'up', 'left', 'right'] },
+    D: { L: ['right', 'left', 'down', 'up', 'right', 'up', 'down', 'left', 'up', 'down', 'right', 'left', 'left', 'down', 'up', 'right', 'up', 'down', 'right', 'left', 'down', 'right', 'up', 'left'],
+         R: ['up', 'right', 'left', 'down', 'down', 'up', 'right', 'left', 'left', 'up', 'down', 'right', 'right', 'up', 'down', 'left', 'left', 'right', 'down', 'up', 'right', 'down', 'left', 'up'] },
+    E: { L: ['left', 'down', 'up', 'right', 'right', 'up', 'down', 'left', 'down', 'left', 'right', 'up', 'right', 'up', 'left', 'down', 'left', 'right', 'down', 'up', 'up', 'left', 'down', 'right'],
+         R: ['left', 'right', 'up', 'down', 'up', 'down', 'left', 'right', 'up', 'down', 'right', 'left', 'down', 'right', 'up', 'left', 'down', 'up', 'right', 'left', 'right', 'left', 'up', 'down'] }
   };
-  var SHAPES = ['●', '▲', '■']; // ● ▲ ■ — same row markers as the paper answer sheet
+  var SHAPES = ['●', '▲', '■', '◆', '♥', '♠']; // same row markers as the paper answer sheet (6 rows)
   var ringIdCounter = 0;
 
   function ringSVG(direction, sizeMm){
@@ -264,7 +267,8 @@
     LINES.forEach(function(d){
       var t = heightFor(d);
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td>6/' + d + '</td><td>' + t.toFixed(1) + ' mm</td><td>'
+      var use = CHART_LINES.indexOf(d) >= 0 ? 'screening · Line ' + (CHART_LINES.indexOf(d) + 1) : (d === 60 ? 'practice ring only' : 'not used');
+      tr.innerHTML = '<td>6/' + d + '</td><td>' + use + '</td><td>' + t.toFixed(1) + ' mm</td><td>'
                    + (t * scale).toFixed(1) + ' mm</td>';
       sizeTable.appendChild(tr);
     });
@@ -311,7 +315,7 @@
 
   function showPractice(){
     if (!scale) { alert('Calibrate the screen first (Step 1).'); return; }
-    rowShape.textContent = '★';
+    rowShape.textContent = 'P';
     lineCaption.textContent = 'Practice ring (not scored)';
     ringRow.innerHTML = ringSVG('right', heightFor(60) * scale);
   }

@@ -82,7 +82,7 @@
 
   <header>
     <h1>Vision First — screen calibration</h1>
-    <span class="stage">v0.3 · right eye first · 6-line screening chart (6/36 to 6/6)</span>
+    <span class="stage">v0.3.1 · right eye first · 6-line screening chart (6/36 to 6/6)</span>
   </header>
 
   <!-- STEP 1 -->
@@ -140,7 +140,7 @@
   <!-- STEP 3 -->
   <section class="step hidden" id="step3">
     <h2>Run the screening chart</h2>
-    <p>Pick the sequence written on the child's code slip, hold up the correct colour occluder, then show each line in order, starting with the biggest rings (Line 1, 6/36) and moving down to the smallest (Line 6, 6/6). Stop as soon as the child cannot read a line (fewer than 3 of 4 correct). The child circles the matching arrow on their paper answer sheet — this screen never shows the answer, only the ring.</p>
+    <p>Pick the sequence written on the child's code slip, hold up the correct colour occluder, then show all six lines in order, from the biggest rings (Line 1, 6/36) down to the smallest (Line 6, 6/6). Everyone in the group answers every line (if unsure, guess), about 30 seconds per line. When marking, a child's result for that eye is the smallest line read with 3 of 4 correct, working down from Line 1 and stopping at the first line not read. The child circles the matching arrow on their paper answer sheet — this screen never shows the answer, only the ring.</p>
 
     <div class="row" style="align-items:center">
       <div>
@@ -154,7 +154,7 @@
     </div>
 
     <div class="row">
-      <button id="practiceBtn" type="button">Practice (big ring)</button>
+      <button id="practiceBtn" type="button">&#9733; Practice (big ring)</button>
       <button data-line="0">&#9679; Line 1 · 6/36</button>
       <button data-line="1">&#9650; Line 2 · 6/24</button>
       <button data-line="2">&#9632; Line 3 · 6/18</button>
@@ -315,7 +315,7 @@
 
   function showPractice(){
     if (!scale) { alert('Calibrate the screen first (Step 1).'); return; }
-    rowShape.textContent = 'P';
+    rowShape.textContent = '★';
     lineCaption.textContent = 'Practice ring (not scored)';
     ringRow.innerHTML = ringSVG('right', heightFor(60) * scale);
   }
